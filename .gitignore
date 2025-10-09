@@ -23,3 +23,20 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Benchmark results
+docker_*.txt
+results/
+results_*/
+
+# Log files
+*.log
+logs/
+
+# Performance data
+*.perf
+*.prof
+*.trace
+
+# Docker temporary files
+.dockerignore

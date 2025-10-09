@@ -10,7 +10,24 @@ The benchmark tests both frameworks with two types of API endpoints:
 
 Performance metrics measured:
 - Response time
-- Throughput (requests per second)
+- Thr### Running Benchmarks
+
+```bash
+# Run all benchmarks (native execution)
+./run_all_benchmarks.sh
+
+# Run Docker container benchmarks (isolated environment)
+./docker_benchmark.sh
+
+# Run CPU & RAM intensive benchmarks
+./cpu_ram_benchmark.sh
+
+# Run specific benchmark
+./benchmarks/run_benchmark.sh [actix|axum] [light|heavy] [duration] [connections] [threads]
+
+# Example: Test Actix light endpoint for 60 seconds with 200 connections
+./benchmarks/run_benchmark.sh actix light 60 200 8
+```ts per second)
 - Memory usage
 - CPU utilization
 
@@ -45,6 +62,8 @@ actix-axum/
 **Endpoints:**
 - `GET /hello` - Returns a simple JSON response
 - `GET /heavy` - Returns a large JSON array (10,000 items)
+- `GET /cpu` - CPU intensive task (Fibonacci calculations)
+- `GET /ram` - RAM intensive task (40MB data allocation and processing)
 
 ### Axum Application (`axum-app/`)
 
@@ -58,6 +77,8 @@ actix-axum/
 **Endpoints:**
 - `GET /hello` - Returns a simple JSON response
 - `GET /heavy` - Returns a large JSON array (10,000 items)
+- `GET /cpu` - CPU intensive task (Fibonacci calculations)
+- `GET /ram` - RAM intensive task (40MB data allocation and processing)
 
 ## Benchmarking Methodology
 
@@ -93,6 +114,20 @@ actix-axum/
 - **Concurrency**: 100 connections
 - **Threads**: 4 threads
 - **Endpoint**: `/heavy` (returns ~1MB JSON)
+
+#### CPU Intensive Tests
+- **Duration**: 30 seconds
+- **Concurrency**: 20 connections
+- **Threads**: 2 threads
+- **Endpoint**: `/cpu` (Fibonacci calculations)
+- **Resource Monitoring**: CPU and memory usage
+
+#### RAM Intensive Tests
+- **Duration**: 20 seconds
+- **Concurrency**: 10 connections
+- **Threads**: 1 thread
+- **Endpoint**: `/ram` (40MB data allocation)
+- **Resource Monitoring**: CPU and memory usage
 
 #### Stress Tests
 - **Duration**: 60 seconds
@@ -218,46 +253,138 @@ curl http://127.0.0.1:8081/heavy | head -c 200
 
 *Performance rating: ⭐⭐⭐⭐⭐ = Excellent, ⭐⭐⭐⭐ = Very Good, ⭐⭐⭐ = Good*
 
+## Docker Container Benchmarks
+
+Recent benchmarks were conducted using Docker containers to provide isolated testing environment and ensure reproducible results.
+
+### Docker Benchmark Results
+
+#### Light Endpoint Performance (30s, 100 connections, 4 threads)
+
+| Metric | Actix | Axum | Difference |
+|--------|-------|------|------------|
+| **Requests/sec** | 25,643 | 25,245 | -1.6% (Actix slightly faster) |
+| **Latency (avg)** | 3.87ms | 3.96ms | +2.3% (Axum slightly slower) |
+| **Total Requests** | 772,321 | 759,615 | -1.6% (Actix more requests) |
+| **Transfer/sec** | 5.62MB | 5.54MB | -1.4% |
+
+#### Heavy Endpoint Performance (20s, 50 connections, 2 threads)
+
+| Metric | Actix | Axum | Difference |
+|--------|-------|------|------------|
+| **Requests/sec** | 103.50 | 93.79 | -9.4% (Actix faster) |
+| **Latency (avg)** | 475.68ms | 525.41ms | +10.5% (Axum slower) |
+| **Total Requests** | 2,078 | 1,881 | -9.5% (Actix more requests) |
+| **Transfer/sec** | 131.17MB | 118.87MB | -9.4% |
+
+#### Individual Request Response Times (Docker)
+
+| Framework | Light Endpoint (/hello) | Heavy Endpoint (/heavy) |
+|-----------|------------------------|------------------------|
+| **Actix** | ~7-21ms | ~418ms |
+| **Axum** | ~11-13ms | ~270ms |
+
+*Note: Individual times measured using `time curl` in Docker environment*
+
+### Docker vs Native Performance Comparison
+
+The Docker container benchmarks show different performance characteristics compared to native execution:
+
+- **Light endpoints**: Actix shows slight edge in Docker (25.6K vs 25.2K req/sec)
+- **Heavy endpoints**: Actix significantly outperforms Axum in Docker (103.5 vs 93.8 req/sec)
+- **Overall**: Docker introduces some overhead but provides consistent, reproducible results
+
+### CPU & RAM Intensive Benchmarks
+
+Recent benchmarks tested CPU and RAM intensive operations to evaluate framework performance under resource pressure.
+
+#### CPU Intensive Performance (Fibonacci calculations, 30s, 20 connections, 2 threads)
+
+| Metric | Actix | Axum | Difference |
+|--------|-------|------|------------|
+| **Requests/sec** | 2.83 | 2.36 | -16.6% (Actix faster) |
+| **Latency (avg)** | 1.33s | 1.11s | -16.5% (Axum faster) |
+| **CPU Usage** | 171.12% | 139.72% | +22.5% (Axum more efficient) |
+| **Memory Usage** | 1.445MiB | 1020KiB | -29.4% (Axum more efficient) |
+| **Total Requests** | 85 | 71 | -16.5% |
+
+#### RAM Intensive Performance (40MB data allocation, 20s, 10 connections, 1 thread)
+
+| Metric | Actix | Axum | Difference |
+|--------|-------|------|------------|
+| **Requests/sec** | 45.88 | 46.24 | +0.8% (Axum slightly faster) |
+| **Latency (avg)** | 216.87ms | 214.83ms | -1.0% (Axum slightly faster) |
+| **CPU Usage** | 140.17% | 188.91% | +34.8% (Actix more efficient) |
+| **Memory Usage** | 96.43MiB | 103.7MiB | +7.5% (Actix more efficient) |
+| **Total Requests** | 920 | 928 | +0.9% |
+
+### Key CPU & RAM Benchmark Findings
+
+1. **CPU Intensive Tasks**:
+   - **Actix shows better throughput** (2.83 vs 2.36 req/sec) but higher latency
+   - **Axum is more CPU efficient** (139.72% vs 171.12% CPU usage)
+   - **Axum uses less memory** for CPU intensive operations
+
+2. **RAM Intensive Tasks**:
+   - **Very similar performance** between frameworks (45.88 vs 46.24 req/sec)
+   - **Actix is more CPU efficient** (140.17% vs 188.91% CPU usage)
+   - **Actix uses less memory** (96.43MiB vs 103.7MiB)
+
+3. **Resource Efficiency**:
+   - **CPU tasks**: Axum demonstrates better resource efficiency
+   - **RAM tasks**: Actix shows slight edge in memory management
+   - **Overall**: Both frameworks handle resource-intensive operations well
+
 ## Analysis
 
 ### Key Findings
 
-1. **Performance Results**:
+1. **Native Performance Results** (Previous benchmarks):
    - **Light endpoints**: Both frameworks show sub-5ms response times
    - **Heavy endpoints**: Both handle ~1MB responses in under 15ms
-   - **Axum demonstrates superior performance** in both scenarios
+   - **Axum demonstrated superior performance** in native execution
 
-2. **Framework Characteristics**:
-   - **Actix**: Mature, battle-tested framework with proven stability
-   - **Axum**: Modern, ergonomic framework built on tower ecosystem with better performance
+2. **Docker Container Performance** (Latest benchmarks):
+   - **Light endpoints**: Actix shows slight advantage (25.6K vs 25.2K req/sec)
+   - **Heavy endpoints**: Actix significantly outperforms Axum (103.5 vs 93.8 req/sec)
+   - **Container overhead** reduces absolute performance but improves consistency
 
-3. **Load Testing Insights**:
-   - **Light endpoints**: Axum shows 8.1% better throughput and 7.7% lower latency
-   - **Heavy endpoints**: Axum shows 16.7% better throughput and 14.3% lower latency
-   - **Scalability**: Both frameworks scale well under concurrent load
+3. **CPU Intensive Operations**:
+   - **Actix**: Better throughput (2.83 req/sec) but higher CPU usage (171.12%)
+   - **Axum**: Lower latency (1.11s) and more CPU efficient (139.72%)
+   - **Resource efficiency**: Axum shows better CPU utilization
 
-4. **Response Size Impact**:
-   - Heavy endpoints take 4-6x longer than light endpoints
-   - This is expected due to JSON serialization and network transfer overhead
-   - Performance degradation is linear and predictable
+4. **RAM Intensive Operations**:
+   - **Similar throughput**: Both frameworks handle ~46 req/sec
+   - **Actix**: More CPU efficient (140.17%) and lower memory usage (96.43MiB)
+   - **Axum**: Slightly better latency (214.83ms) but higher resource usage
+
+5. **Framework Characteristics**:
+   - **Actix**: Mature, battle-tested framework with better Docker and RAM performance
+   - **Axum**: Modern, ergonomic framework with excellent native and CPU efficiency
+
+6. **Environment Impact**:
+   - **Native execution**: Axum shows 8-17% better performance across scenarios
+   - **Docker containers**: Actix shows 1-9% better performance, likely due to different runtime characteristics
+   - **Resource intensive tasks**: Performance depends on specific workload characteristics
 
 ### Updated Recommendations
 
 1. **For High-Performance Applications**:
-   - **Axum recommended** for best performance characteristics
+   - **Native execution**: Axum recommended for best performance characteristics
+   - **Containerized environments**: Actix shows better performance in Docker
    - Both frameworks are suitable for production workloads
-   - Consider specific use case requirements when choosing
+   - Consider deployment environment when choosing framework
 
-2. **For Large Response APIs**:
-   - **Axum performs better** with large payloads
-   - Consider response compression for better performance
-   - Implement pagination for extremely large datasets
-   - Use streaming for responses >10MB
-
-3. **For Development Experience**:
+2. **For Development Experience**:
    - **Axum provides more intuitive** async/await patterns
    - **Actix offers extensive** middleware ecosystem
    - Choose based on team preferences and existing codebase
+
+3. **For Containerized Deployments**:
+   - **Actix performs better** in Docker environments
+   - Consider Docker-specific optimizations for both frameworks
+   - Test performance in target deployment environment
 
 ### Performance Optimization Tips
 
@@ -306,6 +433,10 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Install benchmarking tools
 ./benchmarks/setup.sh
+
+# For Docker benchmarks (optional)
+# Install Docker and wrk load testing tool
+sudo apt update && sudo apt install -y docker.io wrk
 ```
 
 ### Running Applications
@@ -325,8 +456,11 @@ cargo build --release
 ### Running Benchmarks
 
 ```bash
-# Run all benchmarks
+# Run all benchmarks (native execution)
 ./run_all_benchmarks.sh
+
+# Run Docker container benchmarks (isolated environment)
+./docker_benchmark.sh
 
 # Run specific benchmark
 ./benchmarks/run_benchmark.sh [actix|axum] [light|heavy] [duration] [connections] [threads]
@@ -340,6 +474,22 @@ cargo build --release
 ```bash
 # Generate results summary
 ./analyze_results.sh
+
+# View Docker benchmark results
+cat docker_actix_light.txt
+cat docker_actix_heavy.txt
+cat docker_axum_light.txt
+cat docker_axum_heavy.txt
+
+# View CPU & RAM benchmark results
+cat docker_actix_cpu_benchmark.txt
+cat docker_actix_cpu_stats.txt
+cat docker_axum_cpu_benchmark.txt
+cat docker_axum_cpu_stats.txt
+cat docker_actix_ram_benchmark.txt
+cat docker_actix_ram_stats.txt
+cat docker_axum_ram_benchmark.txt
+cat docker_axum_ram_stats.txt
 ```
 
 ## Future Improvements
@@ -348,18 +498,33 @@ cargo build --release
    - Database integration tests
    - Authentication middleware tests
    - WebSocket performance tests
+   - Container orchestration (Kubernetes) performance tests
+   - I/O intensive operations (file system, network)
 
 2. **More Comprehensive Metrics**:
    - Memory profiling with valgrind
    - CPU profiling with perf
    - Network I/O analysis
+   - Container resource usage monitoring
+   - Garbage collection analysis
 
 3. **Different Hardware Configurations**:
    - Multi-core scaling tests
    - Different CPU architectures
-   - Container vs bare-metal performance
+   - Container vs bare-metal performance comparison
+   - Cloud environment testing (AWS, GCP, Azure)
 
-## Contributing
+4. **Benchmarking Infrastructure**:
+   - Automated CI/CD benchmarking pipelines
+   - Historical performance tracking
+   - Regression detection
+   - Multi-environment comparison tools
+
+5. **Resource-Specific Benchmarks**:
+   - GPU-accelerated workloads
+   - Disk I/O intensive operations
+   - Network latency simulation
+   - Memory pressure testing
 
 Feel free to contribute by:
 - Adding more test scenarios

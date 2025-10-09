@@ -12,20 +12,6 @@ run_docker_benchmark() {
     local image_name="${framework}-benchmark"
     local container_name="${framework}-bench"
 
-    echo "Running $framework benchmark in Docker container..."
-
-    # Run the container in detached mode
-    docker run -d --name "$container_name" -p "808${container_name:0:1}:808${container_name:0:1}" "$image_name"
-
-    # Wait for container to start
-    sleep 5
-
-    # Check if container is running
-    if ! docker ps | grep -q "$container_name"; then
-        echo "Failed to start $framework container"
-        return 1
-    fi
-
     # Determine port based on framework
     local port
     if [ "$framework" = "actix" ]; then
@@ -33,6 +19,11 @@ run_docker_benchmark() {
     else
         port=8081
     fi
+
+    echo "Running $framework benchmark in Docker container..."
+
+    # Run the container in detached mode
+    docker run -d --name "$container_name" -p "$port:$port" "$image_name"
 
     echo "Testing $framework endpoints..."
     # Test basic functionality
