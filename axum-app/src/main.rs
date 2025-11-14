@@ -1,13 +1,6 @@
-use axum::{
-    extract::Query,
-    http::StatusCode,
-    response::Json,
-    routing::get,
-    Router,
-};
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use axum::{Router, response::Json, routing::get};
+use chrono::Utc;
+use serde::Serialize;
 use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
 use uuid::Uuid;
@@ -51,7 +44,8 @@ async fn cpu_intensive() -> Json<ApiResponse> {
 
     // Calculate multiple fibonacci numbers to increase CPU load
     let mut results = Vec::new();
-    for i in 30..40 {  // Fibonacci numbers that require computation
+    for i in 30..40 {
+        // Fibonacci numbers that require computation
         results.push(fibonacci(i));
     }
 
@@ -68,7 +62,7 @@ async fn ram_intensive() -> Json<ApiResponse> {
 
     // Fill vector with data
     for i in 0..10_000_000 {
-        large_vector.push(i as f64 * 3.14159);
+        large_vector.push(i as f64 * std::f64::consts::PI);
     }
 
     // Process the data (simple operations to simulate work)
@@ -79,7 +73,10 @@ async fn ram_intensive() -> Json<ApiResponse> {
     drop(large_vector);
 
     Json(ApiResponse {
-        message: format!("RAM intensive task completed. Sum: {}, Average: {}", sum, avg),
+        message: format!(
+            "RAM intensive task completed. Sum: {}, Average: {}",
+            sum, avg
+        ),
         id: Uuid::new_v4().to_string(),
         timestamp: Utc::now().to_rfc3339(),
     })
