@@ -532,6 +532,47 @@ Feel free to contribute by:
 - Testing on different hardware configurations
 - Adding more web frameworks for comparison
 
+## CI/CD & Automation
+
+This project includes automated workflows for continuous integration and weekly benchmarking:
+
+### GitHub Actions Workflows
+
+1. **Cargo Checks** (`.github/workflows/cargo-checks.yml`)
+   - Runs on every push and pull request
+   - Performs cargo check, clippy, fmt, test, and build
+   - Ensures code quality and prevents regressions
+   - Runs separately for actix-app and axum-app
+
+2. **Weekly Benchmarks** (`.github/workflows/weekly-benchmark.yml`)
+   - Scheduled to run every Monday at 00:00 UTC
+   - Can be manually triggered via workflow_dispatch
+   - Runs comprehensive benchmarks (standard, Docker, CPU/RAM)
+   - Automatically creates a pull request with results
+   - Generates detailed benchmark reports
+
+3. **Security Audit** (`.github/workflows/security-audit.yml`)
+   - Scheduled to run weekly on Mondays
+   - Runs cargo-audit to check for vulnerabilities
+   - Triggers on Cargo.toml/Cargo.lock changes
+   - Performs additional checks with cargo-deny
+
+### Dependabot Configuration
+
+Automated dependency updates are configured in `.github/dependabot.yml`:
+- Weekly checks for Cargo dependencies (Mondays)
+- Separate monitoring for actix-app and axum-app
+- Automatic pull requests for dependency updates
+- Monitors GitHub Actions versions
+
+### Running Workflows Manually
+
+To manually trigger the weekly benchmark workflow:
+1. Go to the Actions tab in GitHub
+2. Select "Weekly Benchmark" workflow
+3. Click "Run workflow"
+4. Select the branch and confirm
+
 ## License
 
 This benchmark project is provided as-is for educational and comparison purposes.
