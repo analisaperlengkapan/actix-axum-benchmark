@@ -22,6 +22,8 @@ jobs:
   check-actix:
     name: Check Actix App
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: ./actix-app
@@ -78,6 +80,8 @@ jobs:
   check-axum:
     name: Check Axum App
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: ./axum-app
