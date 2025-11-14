@@ -1,0 +1,43 @@
+version: 2
+updates:
+  # Monitor dependencies for actix-app
+  - package-ecosystem: "cargo"
+    directory: "/actix-app"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "actix"
+    commit-message:
+      prefix: "chore(actix)"
+      include: "scope"
+
+  # Monitor dependencies for axum-app
+  - package-ecosystem: "cargo"
+    directory: "/axum-app"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "axum"
+    commit-message:
+      prefix: "chore(axum)"
+      include: "scope"
+
+  # Monitor GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"
+      include: "scope"

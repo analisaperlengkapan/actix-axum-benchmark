@@ -1,4 +1,4 @@
-use actix_web::{web, App, HttpResponse, HttpServer, Result};
+use actix_web::{App, HttpResponse, HttpServer, Result, web};
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -43,7 +43,8 @@ async fn cpu_intensive() -> Result<HttpResponse> {
 
     // Calculate multiple fibonacci numbers to increase CPU load
     let mut results = Vec::new();
-    for i in 30..40 {  // Fibonacci numbers that require computation
+    for i in 30..40 {
+        // Fibonacci numbers that require computation
         results.push(fibonacci(i));
     }
 
@@ -62,7 +63,7 @@ async fn ram_intensive() -> Result<HttpResponse> {
 
     // Fill vector with data
     for i in 0..10_000_000 {
-        large_vector.push(i as f64 * 3.14159);
+        large_vector.push(i as f64 * std::f64::consts::PI);
     }
 
     // Process the data (simple operations to simulate work)
@@ -73,7 +74,10 @@ async fn ram_intensive() -> Result<HttpResponse> {
     drop(large_vector);
 
     let response = ApiResponse {
-        message: format!("RAM intensive task completed. Sum: {}, Average: {}", sum, avg),
+        message: format!(
+            "RAM intensive task completed. Sum: {}, Average: {}",
+            sum, avg
+        ),
         id: Uuid::new_v4().to_string(),
         timestamp: chrono::Utc::now().to_rfc3339(),
     };
