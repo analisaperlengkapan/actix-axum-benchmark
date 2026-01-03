@@ -1,4 +1,4 @@
-use actix_web::{web, HttpResponse, Result};
+use actix_web::{HttpResponse, Result, web};
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -52,9 +52,7 @@ pub async fn cpu_intensive() -> Result<HttpResponse> {
         results
     })
     .await
-    .map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!("CPU task failed: {}", e))
-    })?;
+    .map_err(|e| actix_web::error::ErrorInternalServerError(format!("CPU task failed: {}", e)))?;
 
     let response = ApiResponse {
         message: format!("CPU intensive task completed. Results: {:?}", results),
@@ -84,9 +82,7 @@ pub async fn ram_intensive() -> Result<HttpResponse> {
         (sum, avg)
     })
     .await
-    .map_err(|e| {
-        actix_web::error::ErrorInternalServerError(format!("RAM task failed: {}", e))
-    })?;
+    .map_err(|e| actix_web::error::ErrorInternalServerError(format!("RAM task failed: {}", e)))?;
 
     let response = ApiResponse {
         message: format!(
