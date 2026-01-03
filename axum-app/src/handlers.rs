@@ -1,4 +1,4 @@
-use axum::response::Json;
+use axum::{http::StatusCode, response::Json};
 use chrono::Utc;
 use serde::Serialize;
 use uuid::Uuid;
@@ -31,7 +31,7 @@ pub async fn heavy() -> Json<Vec<ApiResponse>> {
     Json(large_data)
 }
 
-pub async fn cpu_intensive() -> Json<ApiResponse> {
+pub async fn cpu_intensive() -> Result<Json<ApiResponse>, (StatusCode, String)> {
     // Offload CPU intensive task to a thread pool
     let results = tokio::task::spawn_blocking(move || {
         // CPU intensive task: Calculate fibonacci numbers
@@ -49,19 +49,23 @@ pub async fn cpu_intensive() -> Json<ApiResponse> {
             results.push(fibonacci(i));
         }
         results
-    }).await.unwrap_or_else(|e| {
-        eprintln!("CPU task failed: {}", e);
-        vec![]
-    });
+    })
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("CPU task failed: {}", e),
+        )
+    })?;
 
-    Json(ApiResponse {
+    Ok(Json(ApiResponse {
         message: format!("CPU intensive task completed. Results: {:?}", results),
         id: Uuid::new_v4().to_string(),
         timestamp: Utc::now().to_rfc3339(),
-    })
+    }))
 }
 
-pub async fn ram_intensive() -> Json<ApiResponse> {
+pub async fn ram_intensive() -> Result<Json<ApiResponse>, (StatusCode, String)> {
     // Offload RAM intensive task to a thread pool
     let (sum, avg) = tokio::task::spawn_blocking(move || {
         // RAM intensive task: Allocate and process large amounts of data
@@ -78,17 +82,21 @@ pub async fn ram_intensive() -> Json<ApiResponse> {
 
         // Vector is dropped when function returns
         (sum, avg)
-    }).await.unwrap_or_else(|e| {
-        eprintln!("RAM task failed: {}", e);
-        (0.0, 0.0)
-    });
+    })
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("RAM task failed: {}", e),
+        )
+    })?;
 
-    Json(ApiResponse {
+    Ok(Json(ApiResponse {
         message: format!(
             "RAM intensive task completed. Sum: {}, Average: {}",
             sum, avg
         ),
         id: Uuid::new_v4().to_string(),
         timestamp: Utc::now().to_rfc3339(),
-    })
+    }))
 }
