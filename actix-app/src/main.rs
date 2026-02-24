@@ -1,5 +1,9 @@
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
+use mimalloc::MiMalloc;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 mod handlers;
 
