@@ -1,7 +1,7 @@
 use axum::{Router, routing::get};
+use mimalloc::MiMalloc;
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
-use mimalloc::MiMalloc;
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
@@ -18,10 +18,7 @@ async fn main() {
         .route("/heavy", get(handlers::heavy))
         .route("/cpu", get(handlers::cpu_intensive))
         .route("/ram", get(handlers::ram_intensive))
-        .layer(
-            ServiceBuilder::new()
-                .layer(cors),
-        );
+        .layer(ServiceBuilder::new().layer(cors));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8081")
         .await
