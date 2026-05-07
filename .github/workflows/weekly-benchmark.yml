@@ -27,6 +27,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
+          cache: false
 
       - name: Install benchmark tools
         run: |
@@ -170,34 +171,35 @@ jobs:
           def section(title, content):
               return f"### {title}\n\n```\n{content}\n```\n"
 
-          report = f"""# Benchmark Results
-
-**Last Updated:** {run_date}
-**System:** GitHub Actions Runner (ubuntu-latest)
-**CPU:** {cpu}
-**Cores:** {cores}
-**Memory:** {mem}
-
-## Summary
-
-{summary_table}
-
-> Results may vary based on runner load and available resources.
-> For production comparisons, run benchmarks on dedicated hardware.
-
-## Detailed Results
-
-{section("Actix – Light Endpoint (30s, 4 threads, 100 connections)", actix_light)}
-{section("Axum – Light Endpoint (30s, 4 threads, 100 connections)", axum_light)}
-{section("Actix – Heavy Endpoint (20s, 2 threads, 50 connections)", actix_heavy)}
-{section("Axum – Heavy Endpoint (20s, 2 threads, 50 connections)", axum_heavy)}
-{section("Actix – CPU Endpoint (30s, 2 threads, 20 connections)", actix_cpu)}
-{section("Axum – CPU Endpoint (30s, 2 threads, 20 connections)", axum_cpu)}
-{section("Actix – RAM Endpoint (20s, 1 thread, 10 connections)", actix_ram)}
-{section("Axum – RAM Endpoint (20s, 1 thread, 10 connections)", axum_ram)}
----
-*Generated automatically by the [weekly-benchmark]({os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/{os.environ.get('GITHUB_REPOSITORY', '')}/actions/runs/{os.environ.get('GITHUB_RUN_ID', '')}) workflow*
-"""
+          report = "\n".join([
+              "# Benchmark Results",
+              "",
+              f"**Last Updated:** {run_date}",
+              "**System:** GitHub Actions Runner (ubuntu-latest)",
+              f"**CPU:** {cpu}",
+              f"**Cores:** {cores}",
+              f"**Memory:** {mem}",
+              "",
+              "## Summary",
+              "",
+              summary_table,
+              "",
+              "> Results may vary based on runner load and available resources.",
+              "> For production comparisons, run benchmarks on dedicated hardware.",
+              "",
+              "## Detailed Results",
+              "",
+              section("Actix – Light Endpoint (30s, 4 threads, 100 connections)", actix_light).strip(),
+              section("Axum – Light Endpoint (30s, 4 threads, 100 connections)", axum_light).strip(),
+              section("Actix – Heavy Endpoint (20s, 2 threads, 50 connections)", actix_heavy).strip(),
+              section("Axum – Heavy Endpoint (20s, 2 threads, 50 connections)", axum_heavy).strip(),
+              section("Actix – CPU Endpoint (30s, 2 threads, 20 connections)", actix_cpu).strip(),
+              section("Axum – CPU Endpoint (30s, 2 threads, 20 connections)", axum_cpu).strip(),
+              section("Actix – RAM Endpoint (20s, 1 thread, 10 connections)", actix_ram).strip(),
+              section("Axum – RAM Endpoint (20s, 1 thread, 10 connections)", axum_ram).strip(),
+              "---",
+              f"*Generated automatically by the [weekly-benchmark]({os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/{os.environ.get('GITHUB_REPOSITORY', '')}/actions/runs/{os.environ.get('GITHUB_RUN_ID', '')}) workflow*",
+          ])
 
           with open("BENCHMARK_RESULTS.md", "w") as f:
               f.write(report)
